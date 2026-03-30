@@ -1,0 +1,1160 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gold Calculator Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gold: #D4AF37;
+            --primary-gold-light: #F4E4BC;
+            --primary-gold-dark: #B8960C;
+            --gradient-gold: linear-gradient(135deg, #D4AF37 0%, #F4E4BC 50%, #D4AF37 100%);
+            --gradient-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-border: rgba(212, 175, 55, 0.3);
+            --text-primary: #1a1a2e;
+            --text-secondary: #4a4a6a;
+            --text-muted: #8a8aaa;
+            --input-bg: #f8f9fa;
+            --input-border: #e0e0e0;
+            --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.1);
+            --shadow-gold: 0 4px 30px rgba(212, 175, 55, 0.3);
+            --success: #28a745;
+            --error: #dc3545;
+        }
+
+        .dark-mode {
+            --gradient-bg: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%);
+            --card-bg: rgba(25, 25, 45, 0.98);
+            --card-border: rgba(212, 175, 55, 0.4);
+            --text-primary: #ffffff;
+            --text-secondary: #c0c0d0;
+            --text-muted: #8a8aaa;
+            --input-bg: rgba(255, 255, 255, 0.08);
+            --input-border: rgba(212, 175, 55, 0.3);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--gradient-bg);
+            min-height: 100vh;
+            color: var(--text-primary);
+            transition: background 0.4s ease, color 0.4s ease;
+            overflow-x: hidden;
+        }
+
+        .bg-animation {
+            position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0;
+        }
+
+        .bg-animation span {
+            position: absolute; background: var(--primary-gold); opacity: 0.08;
+            border-radius: 50%; animation: floatUp 18s infinite linear;
+        }
+
+        .bg-animation span:nth-child(1)  { width: 18px; height: 18px; left: 8%;  animation-delay: 0s;   animation-duration: 16s; }
+        .bg-animation span:nth-child(2)  { width: 28px; height: 28px; left: 20%; animation-delay: 2s;   animation-duration: 20s; }
+        .bg-animation span:nth-child(3)  { width: 14px; height: 14px; left: 34%; animation-delay: 4s;   animation-duration: 15s; }
+        .bg-animation span:nth-child(4)  { width: 22px; height: 22px; left: 48%; animation-delay: 1s;   animation-duration: 18s; }
+        .bg-animation span:nth-child(5)  { width: 16px; height: 16px; left: 62%; animation-delay: 6s;   animation-duration: 22s; }
+        .bg-animation span:nth-child(6)  { width: 30px; height: 30px; left: 74%; animation-delay: 3s;   animation-duration: 17s; }
+        .bg-animation span:nth-child(7)  { width: 12px; height: 12px; left: 84%; animation-delay: 7s;   animation-duration: 14s; }
+        .bg-animation span:nth-child(8)  { width: 24px; height: 24px; left: 92%; animation-delay: 1.5s; animation-duration: 19s; }
+
+        @keyframes floatUp {
+            0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+            100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+        }
+
+        .container { position: relative; z-index: 1; max-width: 920px; margin: 0 auto; padding: 20px 16px 40px; }
+
+        .header { text-align: center; padding: 36px 20px 28px; position: relative; }
+
+        .logo { display: inline-flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+        .logo-icon {
+            width: 58px; height: 58px; background: var(--gradient-gold); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 26px;
+            box-shadow: var(--shadow-gold); animation: pulseLogo 2.5s ease-in-out infinite;
+        }
+        @keyframes pulseLogo {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+        .logo-text {
+            font-size: clamp(1.5rem, 5vw, 2rem); font-weight: 700;
+            background: var(--gradient-gold); -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .back-btn {
+            position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+            width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--primary-gold);
+            background: var(--card-bg); color: var(--primary-gold); cursor: pointer;
+            display: none; align-items: center; justify-content: center;
+        }
+        .back-btn.show { display: flex; }
+
+        /* Home Grid */
+        .home-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+        }
+
+        .home-card {
+            background: var(--card-bg); border-radius: 20px; padding: 24px 16px;
+            box-shadow: var(--shadow-soft); border: 1px solid var(--card-border);
+            cursor: pointer; transition: all 0.3s ease; text-align: center;
+        }
+        .home-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-gold); }
+
+        .home-card i { font-size: 2.2rem; color: var(--primary-gold); }
+        .home-card-title { font-weight: 600; margin-top: 8px; }
+        .home-card-subtitle { font-size: 0.75rem; color: var(--text-muted); }
+
+        .theme-toggle {
+            position: fixed; top: 16px; right: 16px; z-index: 1000;
+        }
+        .theme-btn {
+            width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--primary-gold);
+            background: var(--card-bg); color: var(--primary-gold); font-size: 1.1rem;
+            cursor: pointer; transition: all 0.35s ease; box-shadow: var(--shadow-soft);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .theme-btn:hover {
+            background: var(--primary-gold); color: #1a1a2e;
+            transform: rotate(20deg) scale(1.05);
+        }
+
+        .calculator-section { display: none; }
+        .calculator-section.active { display: block; animation: fadeSlideIn 0.45s ease; }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(18px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .calc-card {
+            background: var(--card-bg); border-radius: 24px; padding: clamp(18px, 4vw, 32px);
+            box-shadow: var(--shadow-soft); border: 1px solid var(--card-border);
+            margin-bottom: 20px; transition: background 0.4s ease;
+        }
+
+        .calc-header {
+            display: flex; align-items: center; gap: 14px; margin-bottom: 24px;
+            padding-bottom: 18px; border-bottom: 2px solid var(--card-border);
+        }
+
+        .calc-icon {
+            width: 48px; height: 48px; background: var(--gradient-gold);
+            border-radius: 14px; display: flex; align-items: center;
+            justify-content: center; font-size: 1.4rem; flex-shrink: 0;
+        }
+
+        .calc-title {
+            font-size: clamp(1rem, 3vw, 1.25rem);
+            font-weight: 600; color: var(--text-primary);
+        }
+
+        .calc-subtitle {
+            font-size: 0.8rem; color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .input-group { margin-bottom: 18px; }
+        .input-label {
+            display: block; margin-bottom: 8px; font-size: 0.88rem;
+            font-weight: 500; color: var(--text-secondary);
+        }
+        .input-wrapper { position: relative; }
+        .input-field {
+            width: 100%; padding: 14px 18px 14px 48px; border: 2px solid var(--input-border);
+            border-radius: 12px; background: var(--input-bg); color: var(--text-primary);
+            font-family: inherit; font-size: 1rem; transition: border-color 0.3s, box-shadow 0.3s, background 0.4s;
+            -webkit-appearance: none; appearance: none;
+        }
+        .input-field:focus {
+            outline: none; border-color: var(--primary-gold);
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.12);
+        }
+        .input-field::placeholder { color: var(--text-muted); }
+        .input-field.error { border-color: var(--error); animation: shake 0.35s ease; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+        .input-icon {
+            position: absolute; left: 17px; top: 50%; transform: translateY(-50%);
+            color: var(--primary-gold); font-size: 1rem; pointer-events: none;
+        }
+
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        @media (max-width: 500px) { .input-row { grid-template-columns: 1fr; } }
+
+        .btn-row { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+        .btn {
+            flex: 1; min-width: 120px; padding: 14px 20px; border: none;
+            border-radius: 12px; font-family: inherit; font-size: 0.95rem;
+            font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+            display: flex; align-items: center; justify-content: center;
+            gap: 8px; white-space: nowrap;
+        }
+        .btn-primary {
+            background: var(--gradient-gold); color: #1a1a2e;
+            box-shadow: var(--shadow-gold);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 35px rgba(212, 175, 55, 0.45);
+        }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-secondary {
+            background: transparent; color: var(--text-secondary);
+            border: 2px solid var(--input-border);
+        }
+        .btn-secondary:hover {
+            border-color: var(--primary-gold);
+            color: var(--primary-gold);
+        }
+
+        /* Action Buttons */
+        .results-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 18px; flex-wrap: wrap; gap: 10px;
+        }
+
+        .action-buttons {
+            display: flex; gap: 8px;
+        }
+
+        .btn-copy, .btn-whatsapp {
+            padding: 9px 14px; border-radius: 10px; cursor: pointer;
+            display: flex; align-items: center; gap: 6px;
+            font-size: 0.85rem;
+        }
+
+        .btn-copy {
+            background: rgba(212, 175, 55, 0.1);
+            color: var(--primary-gold);
+            border: 2px solid var(--primary-gold);
+        }
+        .btn-copy:hover {
+            background: var(--primary-gold);
+            color: #1a1a2e;
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+            color: white;
+            border: none;
+        }
+        .btn-whatsapp:hover {
+            background: #20ba5c;
+            transform: translateY(-1px);
+        }
+
+        .results-container {
+            margin-top: 28px; padding-top: 22px;
+            border-top: 2px dashed var(--card-border);
+        }
+
+        .results-title {
+            font-size: 1.05rem; font-weight: 600; color: var(--text-primary);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .results-title i { color: var(--primary-gold); }
+
+        .results-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+        }
+        @media (max-width: 400px) { .results-grid { grid-template-columns: repeat(2, 1fr); } }
+
+        .result-item {
+            background: linear-gradient(135deg, rgba(212,175,55,0.1) 0%, rgba(212,175,55,0.04) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.22); border-radius: 14px;
+            padding: 14px 10px; text-align: center;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+        .result-item:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-gold);
+            border-color: var(--primary-gold);
+        }
+
+        .result-label {
+            font-size: 0.76rem; color: var(--text-muted);
+            margin-bottom: 6px; font-weight: 500;
+        }
+        .result-value {
+            font-size: 1.05rem; font-weight: 700;
+            color: var(--primary-gold);
+        }
+        .result-value.large { font-size: 1.35rem; }
+
+        .single-result {
+            background: linear-gradient(135deg, rgba(212,175,55,0.14) 0%, rgba(212,175,55,0.04) 100%);
+            border: 2px solid var(--primary-gold); border-radius: 18px;
+            padding: 24px; text-align: center; margin-bottom: 16px;
+        }
+        .single-result-label {
+            font-size: 0.95rem; color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .single-result-value {
+            font-size: clamp(1.6rem, 5vw, 2.1rem);
+            font-weight: 700; color: var(--primary-gold);
+        }
+
+        .two-col-result {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 14px; margin-bottom: 4px;
+        }
+        @media (max-width: 380px) { .two-col-result { grid-template-columns: 1fr; } }
+
+        .big-result-box {
+            background: linear-gradient(135deg, rgba(212,175,55,0.13) 0%, rgba(212,175,55,0.04) 100%);
+            border: 2px solid rgba(212, 175, 55, 0.4); border-radius: 18px;
+            padding: 20px 14px; text-align: center; transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .big-result-box:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-gold);
+            border-color: var(--primary-gold);
+        }
+        .big-result-box .box-icon { font-size: 1.6rem; margin-bottom: 8px; display: block; }
+        .big-result-box .box-label {
+            font-size: 0.8rem; color: var(--text-muted);
+            font-weight: 500; margin-bottom: 6px;
+        }
+        .big-result-box .box-value {
+            font-size: clamp(1.3rem, 4vw, 1.7rem);
+            font-weight: 700; color: var(--primary-gold);
+        }
+        .big-result-box .box-unit {
+            font-size: 0.75rem; color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto; border-radius: 14px;
+            border: 1px solid var(--card-border);
+            -webkit-overflow-scrolling: touch;
+        }
+        .results-table {
+            width: 100%; border-collapse: collapse;
+            min-width: 420px;
+        }
+        .results-table thead {
+            background: linear-gradient(135deg, rgba(212,175,55,0.22) 0%, rgba(212,175,55,0.1) 100%);
+        }
+        .results-table th {
+            padding: 13px 12px; text-align: center; color: var(--text-primary);
+            font-weight: 600; font-size: 0.82rem; white-space: nowrap;
+            border-bottom: 2px solid rgba(212,175,55,0.25);
+        }
+        .results-table td {
+            padding: 11px 12px; text-align: center; color: var(--text-secondary);
+            font-size: 0.85rem; border-bottom: 1px solid var(--card-border);
+            transition: background 0.2s;
+        }
+        .results-table tbody tr:last-child td { border-bottom: none; }
+        .results-table tbody tr:hover td { background: rgba(212, 175, 55, 0.06); }
+        .results-table tbody tr:nth-child(even) td { background: rgba(212, 175, 55, 0.03); }
+        .results-table tbody tr:nth-child(even):hover td { background: rgba(212, 175, 55, 0.08); }
+
+        .karat-badge {
+            display: inline-block; padding: 4px 12px;
+            background: var(--gradient-gold); color: #1a1a2e;
+            border-radius: 20px; font-weight: 700; font-size: 0.82rem;
+            white-space: nowrap;
+        }
+        .karat-badge.highlight {
+            background: linear-gradient(135deg, #D4AF37, #F4E4BC);
+            box-shadow: 0 2px 8px rgba(212,175,55,0.4);
+        }
+
+        .toast {
+            position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px);
+            background: var(--card-bg); color: var(--text-primary); padding: 13px 26px;
+            border-radius: 14px; box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+            border: 2px solid var(--primary-gold); display: flex; align-items: center;
+            gap: 10px; z-index: 9999; opacity: 0; transition: all 0.35s;
+            white-space: nowrap; max-width: 90vw;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast i { color: var(--primary-gold); font-size: 1.1rem; }
+
+        .footer {
+            text-align: center; padding: 26px 16px;
+            color: var(--text-muted); font-size: 0.82rem;
+            line-height: 1.8;
+        }
+        .footer .text-gold { color: var(--primary-gold); }
+
+        .hidden { display: none !important; }
+
+        .table-wrapper::-webkit-scrollbar { height: 5px; }
+        .table-wrapper::-webkit-scrollbar-track { background: transparent; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: var(--primary-gold); border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="bg-animation" aria-hidden="true">
+    <span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span>
+</div>
+
+<div class="theme-toggle">
+    <button class="theme-btn" id="themeToggle" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
+        <i class="fas fa-moon"></i>
+    </button>
+</div>
+
+<div class="container">
+    <header class="header">
+        <button class="back-btn" id="backBtn">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="logo">
+            <div class="logo-icon" aria-hidden="true"><i class="fas fa-coins"></i></div>
+            <h1 class="logo-text">RK Gold Calculator</h1>
+        </div>
+        <p class="header-subtitle">Professional Gold Price & Conversion Tools</p>
+    </header>
+
+    <div class="home-grid" id="homeGrid">
+        <div class="home-card" data-open="calc1">
+            <i class="fas fa-calculator"></i>
+            <div class="home-card-title">Gold Price</div>
+            <div class="home-card-subtitle">Calculate total price</div>
+        </div>
+        <div class="home-card" data-open="calc2">
+            <i class="fas fa-scissors"></i>
+            <div class="home-card-title">Rati Cut</div>
+            <div class="home-card-subtitle">Weight deduction</div>
+        </div>
+        <div class="home-card" data-open="calc3">
+            <i class="fas fa-arrow-right-arrow-left"></i>
+            <div class="home-card-title">Amount to Gold</div>
+            <div class="home-card-subtitle">PKR to weight</div>
+        </div>
+        <div class="home-card" data-open="calc4">
+            <i class="fas fa-layer-group"></i>
+            <div class="home-card-title">Karat Price</div>
+            <div class="home-card-subtitle">All karat rates</div>
+        </div>
+        <div class="home-card" data-open="calc5">
+            <i class="fas fa-table-cells"></i>
+            <div class="home-card-title">Rates Table</div>
+            <div class="home-card-subtitle">Full breakdown</div>
+        </div>
+    </div>
+
+    <!-- CALCULATOR 1 -->
+    <section class="calculator-section" id="calc1" role="tabpanel">
+        <div class="calc-card">
+            <div class="calc-header">
+                <div class="calc-icon"><i class="fas fa-calculator"></i></div>
+                <div>
+                    <h2 class="calc-title">Gold Price Calculator</h2>
+                    <p class="calc-subtitle">Calculate total price for all major karats</p>
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label class="input-label" for="c1Weight">Weight (Grams)</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-weight-hanging input-icon"></i>
+                        <input type="number" class="input-field" id="c1Weight"
+                               placeholder="e.g. 11.664" min="0" step="0.01">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="c1Price">24K Price / Tola (PKR)</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-rupee-sign input-icon"></i>
+                        <input type="number" class="input-field" id="c1Price"
+                               placeholder="e.g. 260000" min="0" step="1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="calculateGoldPrice()">
+                    <i class="fas fa-calculator"></i> Calculate
+                </button>
+                <button class="btn btn-secondary" onclick="resetCalc('calc1')">
+                    <i class="fas fa-rotate-left"></i> Reset
+                </button>
+            </div>
+
+            <div class="results-container hidden" id="calc1Results">
+                <div class="results-header">
+                    <p class="results-title"><i class="fas fa-chart-bar"></i> Results</p>
+                    <div class="action-buttons">
+                        <button class="btn btn-copy" title="Copy Results" onclick="copyResults('calc1')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="btn btn-whatsapp" title="Share on WhatsApp" onclick="shareOnWhatsApp('calc1')">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="results-grid" id="calc1Grid"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CALCULATOR 2 -->
+    <section class="calculator-section" id="calc2" role="tabpanel">
+        <div class="calc-card">
+            <div class="calc-header">
+                <div class="calc-icon"><i class="fas fa-scissors"></i></div>
+                <div>
+                    <h2 class="calc-title">Rati Cut Calculator</h2>
+                    <p class="calc-subtitle">Final weight after rati cut deduction</p>
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label class="input-label" for="c2Weight">Weight (Grams)</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-weight-hanging input-icon"></i>
+                        <input type="number" class="input-field" id="c2Weight"
+                               placeholder="e.g. 10.00" min="0" step="0.01">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="c2Rati">Rati Cut (0 – 96)</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-minus-circle input-icon"></i>
+                        <input type="number" class="input-field" id="c2Rati"
+                               placeholder="e.g. 4" min="0" max="96" step="0.1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="calculateRatiCut()">
+                    <i class="fas fa-calculator"></i> Calculate
+                </button>
+                <button class="btn btn-secondary" onclick="resetCalc('calc2')">
+                    <i class="fas fa-rotate-left"></i> Reset
+                </button>
+            </div>
+
+            <div class="results-container hidden" id="calc2Results">
+                <div class="results-header">
+                    <p class="results-title"><i class="fas fa-chart-bar"></i> Results</p>
+                    <div class="action-buttons">
+                        <button class="btn btn-copy" title="Copy Results" onclick="copyResults('calc2')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="btn btn-whatsapp" title="Share on WhatsApp" onclick="shareOnWhatsApp('calc2')">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="single-result">
+                    <p class="single-result-label">Final Weight After Rati Cut</p>
+                    <p class="single-result-value" id="c2Final">— grams</p>
+                </div>
+
+                <div class="results-grid" style="margin-top:14px;">
+                    <div class="result-item">
+                        <p class="result-label">Original Weight</p>
+                        <p class="result-value" id="c2Original">—</p>
+                    </div>
+                    <div class="result-item">
+                        <p class="result-label">Weight Deducted</p>
+                        <p class="result-value" id="c2Deducted">—</p>
+                    </div>
+                    <div class="result-item">
+                        <p class="result-label">Rati Cut %</p>
+                        <p class="result-value" id="c2Percent">—</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CALCULATOR 3 -->
+    <section class="calculator-section" id="calc3" role="tabpanel">
+        <div class="calc-card">
+            <div class="calc-header">
+                <div class="calc-icon"><i class="fas fa-arrow-right-arrow-left"></i></div>
+                <div>
+                    <h2 class="calc-title">Amount → Gold Converter</h2>
+                    <p class="calc-subtitle">Convert PKR amount to gold weight</p>
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label class="input-label" for="c3Amount">Total Amount (PKR)</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-money-bill-wave input-icon"></i>
+                        <input type="number" class="input-field" id="c3Amount"
+                               placeholder="e.g. 500000" min="0" step="1">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="c3Rate">Price / Tola (PKR)</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-rupee-sign input-icon"></i>
+                        <input type="number" class="input-field" id="c3Rate"
+                               placeholder="e.g. 260000" min="0" step="1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="calculateAmountToGold()">
+                    <i class="fas fa-calculator"></i> Calculate
+                </button>
+                <button class="btn btn-secondary" onclick="resetCalc('calc3')">
+                    <i class="fas fa-rotate-left"></i> Reset
+                </button>
+            </div>
+
+            <div class="results-container hidden" id="calc3Results">
+                <div class="results-header">
+                    <p class="results-title"><i class="fas fa-chart-bar"></i> Results</p>
+                    <div class="action-buttons">
+                        <button class="btn btn-copy" title="Copy Results" onclick="copyResults('calc3')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="btn btn-whatsapp" title="Share on WhatsApp" onclick="shareOnWhatsApp('calc3')">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="two-col-result">
+                    <div class="big-result-box">
+                        <span class="box-icon">⚖️</span>
+                        <p class="box-label">Total Tola</p>
+                        <p class="box-value" id="c3Tola">—</p>
+                        <p class="box-unit">Tola</p>
+                    </div>
+                    <div class="big-result-box">
+                        <span class="box-icon">🔩</span>
+                        <p class="box-label">Total Grams</p>
+                        <p class="box-value" id="c3Grams">—</p>
+                        <p class="box-unit">Grams</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CALCULATOR 4 -->
+    <section class="calculator-section" id="calc4" role="tabpanel">
+        <div class="calc-card">
+            <div class="calc-header">
+                <div class="calc-icon"><i class="fas fa-layer-group"></i></div>
+                <div>
+                    <h2 class="calc-title">Karat Price Converter</h2>
+                    <p class="calc-subtitle">24K price → all karats down to 10K</p>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" for="c4Price">24K Price / Tola (PKR)</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-rupee-sign input-icon"></i>
+                    <input type="number" class="input-field" id="c4Price"
+                           placeholder="e.g. 260000" min="0" step="1">
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="calculateKaratPrices()">
+                    <i class="fas fa-calculator"></i> Calculate
+                </button>
+                <button class="btn btn-secondary" onclick="resetCalc('calc4')">
+                    <i class="fas fa-rotate-left"></i> Reset
+                </button>
+            </div>
+
+            <div class="results-container hidden" id="calc4Results">
+                <div class="results-header">
+                    <p class="results-title"><i class="fas fa-chart-bar"></i> Karat Prices</p>
+                    <div class="action-buttons">
+                        <button class="btn btn-copy" title="Copy Results" onclick="copyResults('calc4')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="btn btn-whatsapp" title="Share on WhatsApp" onclick="shareOnWhatsApp('calc4')">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="results-grid" id="calc4Grid"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CALCULATOR 5 -->
+    <section class="calculator-section" id="calc5" role="tabpanel">
+        <div class="calc-card">
+            <div class="calc-header">
+                <div class="calc-icon"><i class="fas fa-table-cells"></i></div>
+                <div>
+                    <h2 class="calc-title">Detailed Gold Rate Breakdown</h2>
+                    <p class="calc-subtitle">24K → 10K: per tola, gram, aana & rati</p>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" for="c5Price">24K Price / Tola (PKR)</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-rupee-sign input-icon"></i>
+                    <input type="number" class="input-field" id="c5Price"
+                           placeholder="e.g. 260000" min="0" step="1">
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="calculateDetailedRates()">
+                    <i class="fas fa-calculator"></i> Calculate
+                </button>
+                <button class="btn btn-secondary" onclick="resetCalc('calc5')">
+                    <i class="fas fa-rotate-left"></i> Reset
+                </button>
+            </div>
+
+            <div class="results-container hidden" id="calc5Results">
+                <div class="results-header">
+                    <p class="results-title"><i class="fas fa-chart-bar"></i> Rate Breakdown (24K – 10K)</p>
+                    <div class="action-buttons">
+                        <button class="btn btn-copy" title="Copy Results" onclick="copyResults('calc5')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="btn btn-whatsapp" title="Share on WhatsApp" onclick="shareOnWhatsApp('calc5')">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="results-table" id="calc5Table">
+                        <thead>
+                            <tr>
+                                <th>Karat</th>
+                                <th>Per Tola</th>
+                                <th>Per Gram</th>
+                                <th>Per Aana</th>
+                                <th>Per Rati</th>
+                            </tr>
+                        </thead>
+                        <tbody id="calc5Body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>© 2026 RK Gold Calculator Suite &nbsp;|&nbsp; Made with <span class="text-gold">♥</span></p>
+        
+    </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+    <i class="fas fa-circle-check"></i>
+    <span id="toastMsg">Done!</span>
+</div>
+
+<script>
+'use strict';
+
+/* ============================================================
+   CONSTANTS
+   ============================================================ */
+const TOLA     = 11.664;   // grams per tola
+const AANA     = 16;       // aana per tola
+const RATI_PER = 96;       // rati per tola
+
+/* ============================================================
+   THEME TOGGLE
+   ============================================================ */
+const themeBtn  = document.getElementById('themeToggle');
+const body      = document.body;
+
+// Restore saved theme
+if (localStorage.getItem('gcTheme') === 'dark') {
+    body.classList.add('dark-mode');
+    themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
+}
+
+themeBtn.addEventListener('click', () => {
+    body.classList.toggle('dark-mode');
+    const dark = body.classList.contains('dark-mode');
+    themeBtn.innerHTML = dark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    localStorage.setItem('gcTheme', dark ? 'dark' : 'light');
+});
+
+/* ============================================================
+   NEW NAVIGATION SYSTEM
+   ============================================================ */
+const homeGrid = document.getElementById('homeGrid');
+const backBtn = document.getElementById('backBtn');
+
+// Open calculator when card is clicked
+document.querySelectorAll('.home-card').forEach(card => {
+    card.addEventListener('click', () => {
+        const target = card.dataset.open;
+        openCalculator(target);
+    });
+});
+
+// Back button
+backBtn.addEventListener('click', goHome);
+
+function openCalculator(calcId) {
+    homeGrid.classList.add('hidden');
+    document.querySelectorAll('.calculator-section').forEach(s => s.classList.remove('active'));
+    document.getElementById(calcId).classList.add('active');
+    backBtn.classList.add('show');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function goHome() {
+    document.querySelectorAll('.calculator-section').forEach(s => s.classList.remove('active'));
+    homeGrid.classList.remove('hidden');
+    backBtn.classList.remove('show');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+
+/**
+ * Format number: adds thousands separators, fixed decimals.
+ * @param {number} n
+ * @param {number} d - decimal places
+ */
+function fmt(n, d = 2) {
+    return n.toLocaleString('en-PK', {
+        minimumFractionDigits: d,
+        maximumFractionDigits: d
+    });
+}
+
+/**
+ * Validate a single input. Returns parsed float or null.
+ * @param {HTMLInputElement} el
+ * @param {number} [min=0]
+ * @param {number} [max=Infinity]
+ */
+function validateField(el, min = 0, max = Infinity) {
+    const v = parseFloat(el.value);
+    if (el.value.trim() === '' || isNaN(v) || v < min || v > max) {
+        el.classList.add('error');
+        el.addEventListener('input', () => el.classList.remove('error'), { once: true });
+        return null;
+    }
+    el.classList.remove('error');
+    return v;
+}
+
+/** Show brief toast message */
+function toast(msg) {
+    const t  = document.getElementById('toast');
+    const tm = document.getElementById('toastMsg');
+    tm.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/** Make a result-item card */
+function makeCard(label, value) {
+    const d = document.createElement('div');
+    d.className = 'result-item';
+    d.innerHTML = `<p class="result-label">${label}</p>
+                   <p class="result-value">${value}</p>`;
+    return d;
+}
+
+/** Copy plain text to clipboard */
+function clipCopy(text) {
+    navigator.clipboard.writeText(text)
+        .then(() => toast('✅ Copied to clipboard!'))
+        .catch(() => {
+            // Fallback
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            toast('✅ Copied to clipboard!');
+        });
+}
+
+/** Reset a calculator section */
+function resetCalc(sectionId) {
+    const sec = document.getElementById(sectionId);
+    sec.querySelectorAll('.input-field').forEach(inp => {
+        inp.value = '';
+        inp.classList.remove('error');
+    });
+    sec.querySelectorAll('.results-container').forEach(r => r.classList.add('hidden'));
+    toast('🔄 Calculator reset!');
+}
+
+/* ============================================================
+   SHARE FUNCTIONS
+   ============================================================ */
+function getResultText(calcId) {
+    let text = '';
+
+    switch (calcId) {
+        case 'calc1':
+            text = 'Gold Price Calculator Results\n================================\n';
+            document.querySelectorAll('#calc1Grid .result-item').forEach(el => {
+                const lbl = el.querySelector('.result-label').textContent;
+                const val = el.querySelector('.result-value').textContent;
+                text += `${lbl}: ${val}\n`;
+            });
+            break;
+
+        case 'calc2':
+            text = 'Rati Cut Calculator Results\n================================\n';
+            text += `Final Weight : ${document.getElementById('c2Final').textContent}\n`;
+            text += `Original     : ${document.getElementById('c2Original').textContent}\n`;
+            text += `Deducted     : ${document.getElementById('c2Deducted').textContent}\n`;
+            text += `Cut %        : ${document.getElementById('c2Percent').textContent}\n`;
+            break;
+
+        case 'calc3':
+            text = 'Amount → Gold Converter Results\n================================\n';
+            text += `Total Tola  : ${document.getElementById('c3Tola').textContent} Tola\n`;
+            text += `Total Grams : ${document.getElementById('c3Grams').textContent} Grams\n`;
+            break;
+
+        case 'calc4':
+            text = 'Karat Price Converter Results\n================================\n';
+            document.querySelectorAll('#calc4Grid .result-item').forEach(el => {
+                const lbl = el.querySelector('.result-label').textContent;
+                const val = el.querySelector('.result-value').textContent;
+                text += `${lbl}: ${val}\n`;
+            });
+            break;
+
+        case 'calc5':
+            text = 'Detailed Gold Rate Breakdown (24K – 10K)\n============================================================\n';
+            text += 'Karat  | Per Tola        | Per Gram  | Per Aana  | Per Rati\n';
+            text += '------------------------------------------------------------\n';
+            document.querySelectorAll('#calc5Body tr').forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const k  = cells[0].textContent.trim();
+                const t  = cells[1].textContent.trim();
+                const g  = cells[2].textContent.trim();
+                const a  = cells[3].textContent.trim();
+                const r  = cells[4].textContent.trim();
+                text += `${k.padEnd(6)} | ${t.padEnd(15)} | ${g.padEnd(9)} | ${a.padEnd(9)} | ${r}\n`;
+            });
+            break;
+    }
+    return text;
+}
+
+function copyResults(calcId) {
+    const text = getResultText(calcId);
+    if (text) clipCopy(text);
+}
+
+function shareOnWhatsApp(calcId) {
+    const text = getResultText(calcId);
+    if (!text) {
+        toast('⚠️ Please calculate first!');
+        return;
+    }
+    const encoded = encodeURIComponent(text);
+    window.open(`https://wa.me/?text=${encoded}`, '_blank');
+    toast('📱 Opening WhatsApp...');
+}
+
+/* ============================================================
+   CALCULATOR 1 — GOLD PRICE CALCULATOR
+   ============================================================ */
+function calculateGoldPrice() {
+    const w = validateField(document.getElementById('c1Weight'), 0.001);
+    const p = validateField(document.getElementById('c1Price'),  1);
+    if (w === null || p === null) { toast('⚠️ Please enter valid values.'); return; }
+
+    const weightTola = w / TOLA;
+    const karats = [24, 23, 22, 21, 20, 19, 18];
+    const grid = document.getElementById('calc1Grid');
+    grid.innerHTML = '';
+
+    karats.forEach(k => {
+        const total = (k / 24) * p * weightTola;
+        grid.appendChild(makeCard(`${k}K Gold`, `Rs ${fmt(total, 0)}`));
+    });
+
+    grid.appendChild(makeCard('Weight (Tola)', `${fmt(weightTola, 5)}`));
+    grid.appendChild(makeCard('Weight (Grams)', `${fmt(w, 4)}`));
+
+    document.getElementById('calc1Results').classList.remove('hidden');
+}
+
+/* ============================================================
+   CALCULATOR 2 — RATI CUT
+   ============================================================ */
+function calculateRatiCut() {
+    const w  = validateField(document.getElementById('c2Weight'), 0.001);
+    const rc = validateField(document.getElementById('c2Rati'),   0, 95.9);
+    if (w === null || rc === null) { toast('⚠️ Please enter valid values (Rati 0–96).'); return; }
+
+    const finalW   = (w / RATI_PER) * (RATI_PER - rc);
+    const deducted = w - finalW;
+    const pct      = (rc / RATI_PER) * 100;
+
+    document.getElementById('c2Final').textContent    = `${fmt(finalW, 4)} grams`;
+    document.getElementById('c2Original').textContent = `${fmt(w, 4)} g`;
+    document.getElementById('c2Deducted').textContent = `${fmt(deducted, 4)} g`;
+    document.getElementById('c2Percent').textContent  = `${fmt(pct, 2)} %`;
+
+    document.getElementById('calc2Results').classList.remove('hidden');
+}
+
+/* ============================================================
+   CALCULATOR 3 — AMOUNT → GOLD
+   ============================================================ */
+function calculateAmountToGold() {
+    const amt  = validateField(document.getElementById('c3Amount'), 1);
+    const rate = validateField(document.getElementById('c3Rate'),   1);
+    if (amt === null || rate === null) { toast('⚠️ Please enter valid values.'); return; }
+
+    const tola  = amt / rate;
+    const grams = tola * TOLA;
+
+    document.getElementById('c3Tola').textContent  = fmt(tola,  5);
+    document.getElementById('c3Grams').textContent = fmt(grams, 4);
+
+    document.getElementById('calc3Results').classList.remove('hidden');
+}
+
+/* ============================================================
+   CALCULATOR 4 — KARAT PRICE CONVERTER
+   ============================================================ */
+function calculateKaratPrices() {
+    const p = validateField(document.getElementById('c4Price'), 1);
+    if (p === null) { toast('⚠️ Please enter a valid price.'); return; }
+
+    const grid = document.getElementById('calc4Grid');
+    grid.innerHTML = '';
+
+    for (let k = 24; k >= 10; k--) {
+        const kPrice = (k / 24) * p;
+        grid.appendChild(makeCard(`${k}K Gold`, `Rs ${fmt(kPrice, 0)}`));
+    }
+
+    document.getElementById('calc4Results').classList.remove('hidden');
+}
+
+/* ============================================================
+   CALCULATOR 5 — DETAILED RATE BREAKDOWN
+   ============================================================ */
+function calculateDetailedRates() {
+    const p = validateField(document.getElementById('c5Price'), 1);
+    if (p === null) { toast('⚠️ Please enter a valid price.'); return; }
+
+    const tbody = document.getElementById('calc5Body');
+    tbody.innerHTML = '';
+
+    const highlighted = new Set([24, 22, 21, 18]);
+
+    for (let k = 24; k >= 10; k--) {
+        const perTola = (k / 24) * p;
+        const perGram = perTola / TOLA;
+        const perAana = perTola / AANA;
+        const perRati = perTola / RATI_PER;
+
+        const hl  = highlighted.has(k) ? 'highlight' : '';
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><span class="karat-badge ${hl}">${k}K</span></td>
+            <td>Rs ${fmt(perTola, 0)}</td>
+            <td>Rs ${fmt(perGram, 0)}</td>
+            <td>Rs ${fmt(perAana, 0)}</td>
+            <td>Rs ${fmt(perRati, 0)}</td>
+        `;
+        tbody.appendChild(row);
+    }
+
+    document.getElementById('calc5Results').classList.remove('hidden');
+}
+
+/* ============================================================
+   REAL-TIME CALCULATION
+   ============================================================ */
+function debounce(fn, delay) {
+    let timer;
+    return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+}
+
+function allFilled(sectionId) {
+    const inputs = document.querySelectorAll(`#${sectionId} .input-field`);
+    return [...inputs].every(inp => inp.value.trim() !== '');
+}
+
+const realtime = {
+    calc1: debounce(() => { if (allFilled('calc1')) calculateGoldPrice(); },    450),
+    calc2: debounce(() => { if (allFilled('calc2')) calculateRatiCut(); },      450),
+    calc3: debounce(() => { if (allFilled('calc3')) calculateAmountToGold(); }, 450),
+    calc4: debounce(() => { if (allFilled('calc4')) calculateKaratPrices(); },  450),
+    calc5: debounce(() => { if (allFilled('calc5')) calculateDetailedRates(); },450),
+};
+
+[['c1Weight','calc1'],['c1Price','calc1'],
+ ['c2Weight','calc2'],['c2Rati','calc2'],
+ ['c3Amount','calc3'],['c3Rate','calc3'],
+ ['c4Price','calc4'],
+ ['c5Price','calc5']
+].forEach(([id, calc]) => {
+    document.getElementById(id).addEventListener('input', realtime[calc]);
+});
+
+/* ============================================================
+   ENTER KEY → TRIGGER CALCULATE
+   ============================================================ */
+document.querySelectorAll('.input-field').forEach(inp => {
+    inp.addEventListener('keydown', e => {
+        if (e.key !== 'Enter') return;
+        const section = inp.closest('.calculator-section');
+        if (section) {
+            const btn = section.querySelector('.btn-primary');
+            if (btn) btn.click();
+        }
+    });
+    // Prevent negative on input
+    inp.addEventListener('input', function () {
+        if (this.value !== '' && parseFloat(this.value) < 0) {
+            this.value = Math.abs(parseFloat(this.value));
+        }
+    });
+});
+</script>
+</body>
+</html>
