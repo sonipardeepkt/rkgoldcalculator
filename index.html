@@ -457,6 +457,12 @@
             <div class="home-card-title">Rates Table</div>
             <div class="home-card-subtitle">Full breakdown</div>
         </div>
+        <!-- NEW Grams to Tola/Aana/Rati card -->
+        <div class="home-card" data-open="calc6">
+            <i class="fas fa-scale-unbalanced"></i>
+            <div class="home-card-title">Grams to Tola</div>
+            <div class="home-card-subtitle">Tola, Aana, Rati conversion</div>
+        </div>
     </div>
 
     <!-- CALCULATOR 1 -->
@@ -766,9 +772,79 @@
         </div>
     </section>
 
+    <!-- NEW CALCULATOR 6 (Grams to Tola, Aana, Rati Converter) -->
+    <section class="calculator-section" id="calc6" role="tabpanel">
+        <div class="calc-card">
+            <div class="calc-header">
+                <div class="calc-icon"><i class="fas fa-scale-unbalanced"></i></div>
+                <div>
+                    <h2 class="calc-title">Grams to Tola, Aana, Rati Converter</h2>
+                    <p class="calc-subtitle">Break down grams into exact traditional units</p>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" for="c6Grams">Weight (Grams)</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-weight-scale input-icon"></i>
+                    <input type="number" class="input-field" id="c6Grams"
+                           placeholder="e.g. 11.664" min="0" step="0.001">
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="calculateGramsToTola()">
+                    <i class="fas fa-calculator"></i> Calculate
+                </button>
+                <button class="btn btn-secondary" onclick="resetCalc('calc6')">
+                    <i class="fas fa-rotate-left"></i> Reset
+                </button>
+            </div>
+
+            <div class="results-container hidden" id="calc6Results">
+                <div class="results-header">
+                    <p class="results-title"><i class="fas fa-chart-bar"></i> Converted Breakdown</p>
+                    <div class="action-buttons">
+                        <button class="btn btn-copy" title="Copy Results" onclick="copyResults('calc6')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="btn btn-whatsapp" title="Share on WhatsApp" onclick="shareOnWhatsApp('calc6')">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="single-result">
+                    <p class="single-result-label">Combined Measurement Expression</p>
+                    <p class="single-result-value" id="c6CombinedExpression">—</p>
+                </div>
+
+                <div class="results-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="result-item">
+                        <p class="result-label">Tola</p>
+                        <p class="result-value large" id="c6Tola">0</p>
+                    </div>
+                    <div class="result-item">
+                        <p class="result-label">Aana</p>
+                        <p class="result-value large" id="c6Aana">0</p>
+                    </div>
+                    <div class="result-item">
+                        <p class="result-label">Rati</p>
+                        <p class="result-value large" id="c6Rati">0</p>
+                    </div>
+                </div>
+
+                <div class="big-result-box" style="margin-top: 16px;">
+                    <p class="box-label">Precise Tola (Absolute Decimal Expression)</p>
+                    <p class="box-value" id="c6TotalTolas">—</p>
+                    <p class="box-unit">Tola</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <footer class="footer">
         <p>© 2026 RK Gold Calculator Suite &nbsp;|&nbsp; Made with <span class="text-gold">♥</span></p>
-        
     </footer>
 </div>
 
@@ -785,7 +861,7 @@
    ============================================================ */
 const TOLA     = 11.664;   // grams per tola
 const AANA     = 16;       // aana per tola
-const RATI_PER = 96;       // rati per tola
+const RATI_PER = 96;       // rati per tola (16 Aanas * 6 Ratis = 96)
 
 /* ============================================================
    THEME TOGGLE
@@ -807,7 +883,7 @@ themeBtn.addEventListener('click', () => {
 });
 
 /* ============================================================
-   NEW NAVIGATION SYSTEM
+   NAVIGATION SYSTEM
    ============================================================ */
 const homeGrid = document.getElementById('homeGrid');
 const backBtn = document.getElementById('backBtn');
@@ -971,6 +1047,12 @@ function getResultText(calcId) {
                 text += `${k.padEnd(6)} | ${t.padEnd(15)} | ${g.padEnd(9)} | ${a.padEnd(9)} | ${r}\n`;
             });
             break;
+
+        case 'calc6':
+            text = 'Grams to Tola, Aana, Rati Results\n================================\n';
+            text += `Result Weight : ${document.getElementById('c6CombinedExpression').textContent}\n`;
+            text += `Precise Tolas : ${document.getElementById('c6TotalTolas').textContent} Tolas\n`;
+            break;
     }
     return text;
 }
@@ -1104,6 +1186,34 @@ function calculateDetailedRates() {
 }
 
 /* ============================================================
+   NEW CALCULATOR 6 — GRAMS TO TOLA/AANA/RATI
+   ============================================================ */
+function calculateGramsToTola() {
+    const grams = validateField(document.getElementById('c6Grams'), 0.001);
+    if (grams === null) { toast('⚠️ Please enter a valid weight.'); return; }
+
+    const totalTolas = grams / TOLA;
+    const tolaWhole = Math.floor(totalTolas);
+    const tolaFraction = totalTolas - tolaWhole;
+
+    const totalAanas = tolaFraction * 16;
+    const aanaWhole = Math.floor(totalAanas);
+    const aanaFraction = totalAanas - aanaWhole;
+
+    // prompt criteria: 1 aana = 6 rati
+    const ratiValue = aanaFraction * 6;
+
+    document.getElementById('c6Tola').textContent = tolaWhole;
+    document.getElementById('c6Aana').textContent = aanaWhole;
+    document.getElementById('c6Rati').textContent = fmt(ratiValue, 2);
+
+    document.getElementById('c6TotalTolas').textContent = fmt(totalTolas, 5);
+    document.getElementById('c6CombinedExpression').textContent = `${tolaWhole} Tola, ${aanaWhole} Aana, ${fmt(ratiValue, 2)} Rati`;
+
+    document.getElementById('calc6Results').classList.remove('hidden');
+}
+
+/* ============================================================
    REAL-TIME CALCULATION
    ============================================================ */
 function debounce(fn, delay) {
@@ -1125,13 +1235,15 @@ const realtime = {
     calc3: debounce(() => { if (allFilled('calc3')) calculateAmountToGold(); }, 450),
     calc4: debounce(() => { if (allFilled('calc4')) calculateKaratPrices(); },  450),
     calc5: debounce(() => { if (allFilled('calc5')) calculateDetailedRates(); },450),
+    calc6: debounce(() => { if (allFilled('calc6')) calculateGramsToTola(); },   450),
 };
 
 [['c1Weight','calc1'],['c1Price','calc1'],
  ['c2Weight','calc2'],['c2Rati','calc2'],
  ['c3Amount','calc3'],['c3Rate','calc3'],
  ['c4Price','calc4'],
- ['c5Price','calc5']
+ ['c5Price','calc5'],
+ ['c6Grams','calc6']
 ].forEach(([id, calc]) => {
     document.getElementById(id).addEventListener('input', realtime[calc]);
 });
